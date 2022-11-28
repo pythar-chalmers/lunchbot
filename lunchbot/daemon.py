@@ -1,5 +1,5 @@
 from lunchbot.fetchers.ICal import ICal
-from lunchbot.discordbot import alert_lunch
+from lunchbot.discord_gateway import alert_lunch
 import lunchbot.config as config
 from collections import defaultdict as DD
 import threading
@@ -23,8 +23,10 @@ def update_tick():
 
 
 def init(args: dict):
+    cfg = config.get_config(args)
+
     global FETCHERS
-    FETCHERS = config.get_fetchers(args)
+    FETCHERS = config.get_fetchers(cfg)
 
     print("LunchBot daemon started.")
     update_tick()  # Initial update tick

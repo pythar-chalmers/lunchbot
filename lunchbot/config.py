@@ -9,7 +9,7 @@ FETCHER_CONS = {
 }
 
 
-def get_fetchers(args: dict) -> dict:
+def get_config(args: dict) -> dict:
     config = None
     with open(args.config, "r") as stream:
         try:
@@ -17,7 +17,10 @@ def get_fetchers(args: dict) -> dict:
         except yaml.YAMLError as err:
             print(f'Configuration error "{err}" in config file "{args.config}"!')
             raise err
+    return config
 
+
+def get_fetchers(config: dict) -> dict:
     fetchers = dict()
     for uid, cfg in config["sources"].items():
         inner_cfg = copy(cfg)

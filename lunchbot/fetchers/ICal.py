@@ -32,8 +32,8 @@ class ICalEvent:
         dtstamp: ic.prop.vDDDTypes = None,
         status: ic.prop.vText = None,
     ):
-        self.sum = str(summary)
-        self.loc = str(location)
+        self.title = str(summary)
+        self.location = str(location)
         self.desc = str(description)
         self.dtstart = dt_to_unix(dtstart)
         self.dtend = dt_to_unix(dtend)
@@ -41,7 +41,7 @@ class ICalEvent:
         self.status = str(status)
 
     def __hash__(self):
-        return hash((self.sum, self.loc, self.dtstart))
+        return hash((self.title, self.location, self.dtstart))
 
     def __eq__(self, other):
         if type(other) == type(self):
@@ -50,7 +50,10 @@ class ICalEvent:
             return False
 
     def __repr__(self):
-        return f'ICalEvent: "{self.sum}" {self.loc=} {self.dtstart=} {self.dtend=} {self.dtstamp=}'
+        return f'ICalEvent: "{self.title}" {self.location=} {self.dtstart=} {self.dtend=} {self.dtstamp=}'
+
+    def to_discord_str(self):
+        return "Event?"
 
 
 def check_field(field: str, pattern: str = "") -> bool:
@@ -59,8 +62,10 @@ def check_field(field: str, pattern: str = "") -> bool:
 
 def filter_event_obj(event: ICalEvent, pattern: str = "", t: int = 0) -> bool:
     # Find keywords in any string inside the event
-    tmp_str = f"{event.sum} {event.loc} {event.desc}"
-    check = check_field(tmp_str, pattern) and t <= event.dtstart + 6000000 # TODO: remove offset
+    tmp_str = f"{event.title} {event.location} {event.desc}"
+    check = (
+        check_field(tmp_str, pattern) and t <= event.dtstart + 6000000
+    )  # TODO: remove offset
     return check
 
 
