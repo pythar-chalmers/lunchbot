@@ -41,7 +41,7 @@ class ICalEvent:
         self.status = str(status)
 
     def __hash__(self):
-        return (self.sum, self.loc, self.dtstart)
+        return hash((self.sum, self.loc, self.dtstart))
 
     def __eq__(self, other):
         if type(other) == type(self):
@@ -53,24 +53,21 @@ class ICalEvent:
         return f'ICalEvent: "{self.sum}" {self.loc=} {self.dtstart=} {self.dtend=} {self.dtstamp=}'
 
 
-def check_field(field: str, regex: list = []) -> bool:
-    match = False
-    for reg in regex:
-        match |= bool(re.match(reg, field))
-    return match
+def check_field(field: str, pattern: str = "") -> bool:
+    return re.search(pattern, field, re.IGNORECASE) != None
 
 
-def filter_event_obj(event: ICalEvent, regex: list = [], time: int = 0) -> bool:
-    if int(time.time()) < time:  # if in the past then ignore
-        return False
-
+def filter_event_obj(event: ICalEvent, pattern: str = "", t: int = 0) -> bool:
     # Find keywords in any string inside the event
     tmp_str = f"{event.sum} {event.loc} {event.desc}"
-    return check_field(tmp_str, regex)
+    check = check_field(tmp_str, pattern) and t <= event.dtstart + 6000000 # TODO: remove offset
+    return check
 
 
 class ICal:
     events = []
+    seen = set()
+    pattern = ""
 
     def __fetch_data(self) -> str:
         r = req.get(self.url)
@@ -78,7 +75,9 @@ class ICal:
         if self.status:
             return r.text
         else:
-            print(f"WARNING! Unable to fetch contents from ICal link '{self.url}'!")
+            print(
+                f"WARNING! Unable to fetch contents from ICal link '{self.url}' {self.status=}!"
+            )
 
     def update(self):
         cal_src = self.__fetch_data()
@@ -89,15 +88,29 @@ class ICal:
         self.events = []
         cal = ic.Calendar.from_ical(cal_src)
         for comp in cal.walk():  # parse ical
-            if comp.name == "VEVENT":
+            if comp.name == "VEVENT":  # TODO: make future proof
                 event = dict()
                 for field in ICAL_FIELDS:  # parse only the fields
                     event[field] = comp.get(field)
                 self.events.append(ICalEvent(**event))
 
-    def get_events(self, time: int = 0, patterns: list = []) -> list:
-        return [ev for ev in self.events if filter_event_obj(ev, patterns, time)]
+    def get_events(self, t: int = 0) -> list:
+        found_events = set(
+            [ev for ev in self.events if filter_event_obj(ev, self.pattern, t)]
+        )
+        new_events = found_events - self.seen
+        self.seen = self.seen.union(found_events)
 
-    def __init__(self, url):
+        return list(new_events)
+
+    def __init__(self, url: str, pattern: str = ""):
         self.url = url
+        self.pattern = pattern
         self.update()
+
+    def from_config(config: dict):
+        return ICal(**config)
+
+
+def ical_from_cfg(cfg: dict):
+    return ICal(cfg["url"])

@@ -1,28 +1,33 @@
 from lunchbot.fetchers.ICal import ICal
-from lunchbot.parse_patterns import get_patterns
+from lunchbot.discordbot import alert_lunch
+import lunchbot.config as config
+from collections import defaultdict as DD
 import threading
 import time
 
-START_TIME = int(time.time())
-PATTERNS = []
-
-fetchers = {
-    "dtek": ICal(
-        "https://calendar.google.com/calendar/ical/dtek.se_0tavt7qtqphv86l4stb0aj3j88%40group.calendar.google.com/public/basic.ics"
-    )  # DTEK calendar
-}
+FETCHERS = {}
+FETCHER_EVENTS = DD(list)
 
 
 def update_tick():
-    print("Updating fetchers...")
-    for fetcher in fetchers:
+    print("Checking for event updates...")
+    for _, fetcher in FETCHERS.items():
         fetcher.update()
-    print("Done.")
+
+    for uid, fetcher in FETCHERS.items():
+        FETCHER_EVENTS[uid] = fetcher.get_events(int(time.time()))
+        if len(FETCHER_EVENTS[uid]) >= 1:
+            alert_lunch(FETCHER_EVENTS[uid])
+
+    print(f"Waiting for next update tick...")
 
 
-def init(args):
-    PATTERNS = get_patterns(args.regex_file)
+def init(args: dict):
+    global FETCHERS
+    FETCHERS = config.get_fetchers(args)
+
+    print("LunchBot daemon started.")
+    update_tick()  # Initial update tick
 
     thread = threading.Timer(args.interval, update_tick)
     thread.start()
-    print("LunchBot daemon started.")

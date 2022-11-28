@@ -11,7 +11,14 @@ parser.add_argument(
     default="patterns/lunch.txt",
     help="File containing regex patterns (seperated by linebreak).",
 )
+parser.add_argument(
+    "-c",
+    "--config",
+    default="config.yml",
+    help="The config file.",
+)
 
 if __name__ == "__main__":
     args = parser.parse_args()
+
     init_daemon(args)
