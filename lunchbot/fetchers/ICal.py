@@ -5,6 +5,9 @@ import time
 from datetime import datetime
 from collections import defaultdict as DD
 
+DEFAULT_ICON_URL = "https://avatars.githubusercontent.com/u/38406360"
+TIMEZONE_OFFSET = 3600
+
 ICAL_FIELDS = [
     "summary",  # vText
     "location",  # vText
@@ -17,7 +20,7 @@ ICAL_FIELDS = [
 
 
 def dt_to_unix(date: ic.prop.vDDDTypes) -> int:
-    return -1 if not date else int(time.mktime(date.dt.timetuple()))
+    return -1 if not date else int(time.mktime(date.dt.timetuple())) + TIMEZONE_OFFSET
 
 
 # Wrapper class for ICalendar events
@@ -31,6 +34,7 @@ class ICalEvent:
         dtend: ic.prop.vDDDTypes = None,
         dtstamp: ic.prop.vDDDTypes = None,
         status: ic.prop.vText = None,
+        icon_url: str = DEFAULT_ICON_URL,
     ):
         self.title = str(summary)
         self.location = str(location)
@@ -39,6 +43,7 @@ class ICalEvent:
         self.dtend = dt_to_unix(dtend)
         self.dtstamp = dt_to_unix(dtstamp)
         self.status = str(status)
+        self.icon_url = icon_url
 
     def __hash__(self):
         return hash((self.title, self.location, self.dtstart))
@@ -64,7 +69,7 @@ def filter_event_obj(event: ICalEvent, pattern: str = "", t: int = 0) -> bool:
     # Find keywords in any string inside the event
     tmp_str = f"{event.title} {event.location} {event.desc}"
     check = (
-        check_field(tmp_str, pattern) and t <= event.dtstart + 6000000
+        check_field(tmp_str, pattern) and t <= event.dtend
     )  # TODO: remove offset
     return check
 
@@ -97,7 +102,7 @@ class ICal:
                 event = dict()
                 for field in ICAL_FIELDS:  # parse only the fields
                     event[field] = comp.get(field)
-                self.events.append(ICalEvent(**event))
+                self.events.append(ICalEvent(**event, icon_url=self.icon_url))
 
     def get_events(self, t: int = 0) -> list:
         found_events = set(
@@ -108,9 +113,15 @@ class ICal:
 
         return list(new_events)
 
-    def __init__(self, url: str, pattern: str = ""):
+    def __init__(
+        self,
+        url: str,
+        pattern: str = "",
+        icon_url: str = DEFAULT_ICON_URL,
+    ):
         self.url = url
         self.pattern = pattern
+        self.icon_url = icon_url
         self.update()
 
     def from_config(config: dict):
