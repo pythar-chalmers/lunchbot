@@ -14,8 +14,8 @@ def get_icalendar_source(url: str) -> str:
 
 def get_events(url: str):
     cal_src = get_icalendar_source(url)
-    cal = ic.Calendar(cal_src)
-    print(cal.events)
+    cal = ic.Calendar.from_ical(cal_src)
+    print(cal)
 
 if __name__ == "__main__":
     get_events(CALENDAR_URL)
