@@ -19,8 +19,19 @@ ICAL_FIELDS = [
 ]
 
 
+# TODO: fix dumb crap
 def dt_to_unix(date: ic.prop.vDDDTypes) -> int:
-    return -1 if not date else int(time.mktime(date.dt.timetuple())) + TIMEZONE_OFFSET
+    try:  # dumb
+        t = (
+            0
+            if not date
+            else int(time.mktime(date.dt.timetuple())) + TIMEZONE_OFFSET
+        )
+        return t
+    except OverflowError as err:
+        thing = None if not date else date.dt
+        print(f"WARNING! dt_to_unix caused an overflow error. {date=} {thing}")
+        return 0
 
 
 # Wrapper class for ICalendar events
@@ -57,9 +68,6 @@ class ICalEvent:
     def __repr__(self):
         return f'ICalEvent: "{self.title}" {self.location=} {self.dtstart=} {self.dtend=} {self.dtstamp=}'
 
-    def to_discord_str(self):
-        return "Event?"
-
 
 def check_field(field: str, pattern: str = "") -> bool:
     return re.search(pattern, field, re.IGNORECASE) != None
@@ -68,9 +76,7 @@ def check_field(field: str, pattern: str = "") -> bool:
 def filter_event_obj(event: ICalEvent, pattern: str = "", t: int = 0) -> bool:
     # Find keywords in any string inside the event
     tmp_str = f"{event.title} {event.location} {event.desc}"
-    check = (
-        check_field(tmp_str, pattern) and t <= event.dtend
-    )  # TODO: remove offset
+    check = check_field(tmp_str, pattern) and t <= event.dtend
     return check
 
 

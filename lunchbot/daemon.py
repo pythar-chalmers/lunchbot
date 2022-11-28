@@ -31,5 +31,5 @@ def init(args: dict):
     print("LunchBot daemon started.")
     update_tick()  # Initial update tick
 
-    thread = threading.Timer(args.interval, update_tick)
+    thread = threading.Timer(int(args.interval), update_tick)
     thread.start()

@@ -35,23 +35,24 @@ def create_embed(event) -> DiscordEmbed:
     embed.add_embed_field(
         name="When?", value=to_discord_date(event.dtstart), inline=False
     )
-    embed.add_embed_field(
-        name="Ends", value=f"<t:{event.dtend}:t>", inline=False
-    )
+    embed.add_embed_field(name="Ends", value=f"<t:{event.dtend}:t>", inline=False)
 
     return embed
 
 
 def alert_lunch(events: list):
-    webhook_handle = DiscordWebhook(
-        url=DISCORD_WEBHOOK_URL,
-    )
+    sliced_events = [events[i::10] for i in range(10)]
 
-    debug("EVENTS:")
-    for ev in events:
-        print(f"\t{ev}")
-        embed = create_embed(ev)
-        webhook_handle.add_embed(embed)
+    for evs in sliced_events:
+        webhook_handle = DiscordWebhook(
+            url=DISCORD_WEBHOOK_URL,
+        )
 
-    response = webhook_handle.execute()
-    debug(f"Got response: {response.status_code}")
+        debug("EVENTS:")
+        for ev in evs:
+            print(f"\t{ev}")
+            embed = create_embed(ev)
+            webhook_handle.add_embed(embed)
+
+        response = webhook_handle.execute()
+        debug(f"Got response: {response.status_code}")
