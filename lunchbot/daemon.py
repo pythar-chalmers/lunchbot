@@ -1,5 +1,3 @@
-# https://calendar.google.com/calendar/ical/dtek.se_0tavt7qtqphv86l4stb0aj3j88%40group.calendar.google.com/public/basic.ics"
-
 from lunchbot.fetchers.ICal import ICal
 from lunchbot.parse_patterns import get_patterns
 import threading
@@ -23,7 +21,7 @@ def update_tick():
 
 
 def init(args):
-    PATTERNS = parse_patterns(args.regex_file)
+    PATTERNS = get_patterns(args.regex_file)
 
     thread = threading.Timer(args.interval, update_tick)
     thread.start()
