@@ -17,7 +17,9 @@ def get_config(path: str = "config.yml") -> dict:
             print(f'Configuration error "{err}" in config file "{args.config}"!')
             raise err
 
+
 config = get_config()
+
 
 def get_fetchers(config: dict) -> dict:
     fetchers = dict()

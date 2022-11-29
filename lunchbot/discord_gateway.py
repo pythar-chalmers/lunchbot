@@ -14,7 +14,7 @@ def debug(txt: str, args: list = [], kwargs: dict = {}):
     logging.info(f"[Discord Gateway] {txt}", *args, **kwargs)
 
 
-def to_discord_date(date: datetime, method: str="f") -> str:
+def to_discord_date(date: datetime, method: str = "f") -> str:
     t = int(date.timestamp())
     return f"<t:{t}:{method}>"
 
@@ -38,7 +38,9 @@ def create_embed(event) -> DiscordEmbed:
     embed.add_embed_field(
         name="When?", value=to_discord_date(event.dtstart), inline=False
     )
-    embed.add_embed_field(name="Ends", value=to_discord_date(event.dtend, "t"), inline=False)
+    embed.add_embed_field(
+        name="Ends", value=to_discord_date(event.dtend, "t"), inline=False
+    )
 
     return embed
 

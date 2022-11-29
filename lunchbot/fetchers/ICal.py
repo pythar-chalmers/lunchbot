@@ -110,10 +110,7 @@ class ICal:
                     event[field] = comp.get(field)
                 self.events.append(ICalEvent(**event, icon_url=self.icon_url))
 
-    def get_events(
-        self,
-        cur_date: datetime = DEFAULT_DATETIME
-    ) -> list:
+    def get_events(self, cur_date: datetime = DEFAULT_DATETIME) -> list:
         found_events: set[ICalEvent] = {
             ev for ev in self.events if filter_event_obj(ev, self.pattern, cur_date)
         }

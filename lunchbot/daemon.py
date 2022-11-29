@@ -5,11 +5,12 @@ from collections import defaultdict as DD
 from time import sleep as delay
 from datetime import datetime
 import threading
-import pytz 
+import pytz
 import logging
 
 FETCHERS: dict = {}
 FETCHER_EVENTS = DD(list)
+
 
 def update_tick():
     logging.info("Checking for event updates...")
@@ -31,7 +32,12 @@ def update_tick():
 def init(args):
     cfg = config.get_config(args.config)
 
-    logging.basicConfig(filename=args.logfile, encoding="utf-8", level=logging.DEBUG)
+    logging.basicConfig(
+        format="%(asctime)s | %(levelname)s: %(message)s",
+        filename=args.logfile,
+        encoding="utf-8",
+        level=logging.INFO,
+    )
 
     global FETCHERS
     FETCHERS = config.get_fetchers(cfg)
@@ -46,4 +52,3 @@ def init(args):
         delay(int(args.interval))
 
     logging.info("LunchBot daemon shutdown.")
-
