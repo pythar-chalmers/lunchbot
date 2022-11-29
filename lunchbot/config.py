@@ -1,24 +1,23 @@
 import yaml
 from copy import deepcopy as copy
 
-from lunchbot.fetchers.ICal import ICal
+from lunchbot.fetchers.ICal import ical_from_config
 
 
 FETCHER_CONS = {
-    "ical": ICal.from_config,
+    "ical": ical_from_config,
 }
 
 
-def get_config(args: dict) -> dict:
-    config = None
-    with open(args.config, "r") as stream:
+def get_config(path: str = "config.yml") -> dict:
+    with open(path, "r") as stream:
         try:
-            config = yaml.safe_load(stream)
+            return yaml.safe_load(stream)
         except yaml.YAMLError as err:
             print(f'Configuration error "{err}" in config file "{args.config}"!')
             raise err
-    return config
 
+config = get_config()
 
 def get_fetchers(config: dict) -> dict:
     fetchers = dict()

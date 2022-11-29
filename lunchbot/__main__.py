@@ -17,6 +17,12 @@ parser.add_argument(
     default="config.yml",
     help="The config file.",
 )
+parser.add_argument(
+    "-l",
+    "--logfile",
+    default="lunchbot.log",
+    help="Output logfile.",
+)
 
 if __name__ == "__main__":
     args = parser.parse_args()

@@ -4,9 +4,12 @@ import re
 import time
 from datetime import datetime
 from collections import defaultdict as DD
+from pytz import UTC
+import pytz
+import logging
 
 DEFAULT_ICON_URL = "https://avatars.githubusercontent.com/u/38406360"
-TIMEZONE_OFFSET = 3600
+DEFAULT_DATETIME = datetime(1970, 1, 1, tzinfo=UTC)
 
 ICAL_FIELDS = [
     "summary",  # vText
@@ -19,19 +22,12 @@ ICAL_FIELDS = [
 ]
 
 
-# TODO: fix dumb crap
-def dt_to_unix(date: ic.prop.vDDDTypes) -> int:
-    try:  # dumb
-        t = (
-            0
-            if not date
-            else int(time.mktime(date.dt.timetuple())) + TIMEZONE_OFFSET
-        )
-        return t
-    except OverflowError as err:
-        thing = None if not date else date.dt
-        print(f"WARNING! dt_to_unix caused an overflow error. {date=} {thing}")
-        return 0
+def get_date(date: ic.prop.vDDDTypes) -> datetime:
+    # vDDDTypes to Datetime
+    if not date:
+        return DEFAULT_DATETIME
+
+    return date.dt
 
 
 # Wrapper class for ICalendar events
@@ -50,9 +46,9 @@ class ICalEvent:
         self.title = str(summary)
         self.location = str(location)
         self.desc = str(description)
-        self.dtstart = dt_to_unix(dtstart)
-        self.dtend = dt_to_unix(dtend)
-        self.dtstamp = dt_to_unix(dtstamp)
+        self.dtstart = get_date(dtstart)
+        self.dtend = get_date(dtend)
+        self.dtstamp = get_date(dtstamp)
         self.status = str(status)
         self.icon_url = icon_url
 
@@ -73,16 +69,19 @@ def check_field(field: str, pattern: str = "") -> bool:
     return re.search(pattern, field, re.IGNORECASE) != None
 
 
-def filter_event_obj(event: ICalEvent, pattern: str = "", t: int = 0) -> bool:
+def filter_event_obj(
+    event: ICalEvent,
+    pattern: str = "",
+    cur_date: datetime = DEFAULT_DATETIME,
+) -> bool:
     # Find keywords in any string inside the event
     tmp_str = f"{event.title} {event.location} {event.desc}"
-    check = check_field(tmp_str, pattern) and t <= event.dtend
-    return check
+    return check_field(tmp_str, pattern) and cur_date <= event.dtend
 
 
 class ICal:
-    events = []
-    seen = set()
+    events: list[ICalEvent] = []
+    seen: set[ICalEvent] = set()
     pattern = ""
 
     def __fetch_data(self) -> str:
@@ -91,9 +90,10 @@ class ICal:
         if self.status:
             return r.text
         else:
-            print(
-                f"WARNING! Unable to fetch contents from ICal link '{self.url}' {self.status=}!"
+            logging.warning(
+                f"Unable to fetch contents from ICal link '{self.url}' {self.status=}!"
             )
+            return ""
 
     def update(self):
         cal_src = self.__fetch_data()
@@ -110,10 +110,13 @@ class ICal:
                     event[field] = comp.get(field)
                 self.events.append(ICalEvent(**event, icon_url=self.icon_url))
 
-    def get_events(self, t: int = 0) -> list:
-        found_events = set(
-            [ev for ev in self.events if filter_event_obj(ev, self.pattern, t)]
-        )
+    def get_events(
+        self,
+        cur_date: datetime = DEFAULT_DATETIME
+    ) -> list:
+        found_events: set[ICalEvent] = {
+            ev for ev in self.events if filter_event_obj(ev, self.pattern, cur_date)
+        }
         new_events = found_events - self.seen
         self.seen = self.seen.union(found_events)
 
@@ -130,8 +133,10 @@ class ICal:
         self.icon_url = icon_url
         self.update()
 
-    def from_config(config: dict):
-        return ICal(**config)
+
+# Builders
+def ical_from_config(config: dict):
+    return ICal(**config)
 
 
 def ical_from_cfg(cfg: dict):
