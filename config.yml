@@ -4,7 +4,6 @@ sources:
     url: "https://calendar.google.com/calendar/ical/dtek.se_0tavt7qtqphv86l4stb0aj3j88%40group.calendar.google.com/public/basic.ics"
     icon_url: "https://pbs.twimg.com/profile_images/834837895441694721/3kIStwdu_400x400.jpg"
     pattern: "lunch|föreläsning|föreläs|gratis|lunchföreläsning"
-
   it.ical:
     type: "ical"
     url: "https://calendar.google.com/calendar/ical/a55ipd3o49n05cd2eebqo854qs%40group.calendar.google.com/public/basic.ics"
