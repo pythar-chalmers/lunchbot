@@ -2,7 +2,7 @@ import icalendar as ic
 import requests as req
 import re
 import time
-from datetime import datetime
+from datetime import datetime, date
 from collections import defaultdict as DD
 from pytz import UTC
 import pytz
@@ -22,12 +22,18 @@ ICAL_FIELDS = [
 ]
 
 
-def get_date(date: ic.prop.vDDDTypes) -> datetime:
+def get_date(date_obj: ic.prop.vDDDTypes) -> datetime:
     # vDDDTypes to Datetime
-    if not date:
+    if not date_obj:
         return DEFAULT_DATETIME
 
-    return date.dt
+    # Fix eventual "date" types.
+    if type(date_obj.dt) == date:
+        date_obj.dt = datetime.combine(date_obj.dt, datetime.min.time())
+
+    date_obj.dt = date_obj.dt.replace(tzinfo=UTC)
+
+    return date_obj.dt
 
 
 # Wrapper class for ICalendar events
@@ -76,6 +82,9 @@ def filter_event_obj(
 ) -> bool:
     # Find keywords in any string inside the event
     tmp_str = f"{event.title} {event.location} {event.desc}"
+    logging.info(
+        f"\n\t{cur_date=} {type(cur_date)=}\n\t{event.dtend=} {type(event.dtend)=}"
+    )
     return check_field(tmp_str, pattern) and cur_date <= event.dtend
 
 
@@ -108,7 +117,9 @@ class ICal:
                 event = dict()
                 for field in ICAL_FIELDS:  # parse only the fields
                     event[field] = comp.get(field)
-                self.events.append(ICalEvent(**event, icon_url=self.icon_url))
+                ical_event = ICalEvent(**event, icon_url=self.icon_url)
+                logging.info(f"\t[{self.url}] Checking event: {ical_event}")
+                self.events.append(ical_event)
 
     def get_events(self, cur_date: datetime = DEFAULT_DATETIME) -> list:
         found_events: set[ICalEvent] = {

@@ -34,7 +34,7 @@ def init(args):
 
     logging.basicConfig(
         format="%(asctime)s | %(levelname)s: %(message)s",
-        filename=args.logfile,
+        # filename=args.logfile,
         encoding="utf-8",
         level=logging.INFO,
     )
