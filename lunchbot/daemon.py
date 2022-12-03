@@ -44,9 +44,6 @@ def init(args):
 
     logging.info("LunchBot daemon started.")
 
-    # thread = threading.Timer(int(args.interval), update_tick)
-    # thread.start()
-
     while True:
         update_tick()  # Initial update tick
         delay(int(args.interval))

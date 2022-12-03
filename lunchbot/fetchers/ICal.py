@@ -82,8 +82,8 @@ def filter_event_obj(
 ) -> bool:
     # Find keywords in any string inside the event
     tmp_str = f"{event.title} {event.location} {event.desc}"
-    logging.info(
-        f"\n\t{cur_date=} {type(cur_date)=}\n\t{event.dtend=} {type(event.dtend)=}"
+    logging.debug(
+        f"DATE CHECK \n\t{cur_date=} {type(cur_date)=}\n\t{event.dtend=} {type(event.dtend)=}"
     )
     return check_field(tmp_str, pattern) and cur_date <= event.dtend
 
@@ -118,7 +118,7 @@ class ICal:
                 for field in ICAL_FIELDS:  # parse only the fields
                     event[field] = comp.get(field)
                 ical_event = ICalEvent(**event, icon_url=self.icon_url)
-                logging.info(f"\t[{self.url}] Checking event: {ical_event}")
+                logging.debug(f"\t[{self.url}] Checking event: {ical_event}")
                 self.events.append(ical_event)
 
     def get_events(self, cur_date: datetime = DEFAULT_DATETIME) -> list:

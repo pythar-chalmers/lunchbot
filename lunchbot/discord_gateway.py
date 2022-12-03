@@ -11,7 +11,7 @@ except KeyError as err:
 
 
 def debug(txt: str, args: list = [], kwargs: dict = {}):
-    logging.info(f"[Discord Gateway] {txt}", *args, **kwargs)
+    logging.debug(f"[Discord Gateway] {txt}", *args, **kwargs)
 
 
 def to_discord_date(date: datetime, method: str = "f") -> str:
@@ -52,7 +52,7 @@ def alert_lunch(events: list):
     )
 
     for event in events:
-        logging.info(f"\t{event}")
+        logging.debug(f"\t{event}")
         embed = create_embed(event)
         webhook_handle.add_embed(embed)
 
