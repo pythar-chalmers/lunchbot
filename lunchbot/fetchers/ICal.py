@@ -94,13 +94,19 @@ class ICal:
     pattern = ""
 
     def __fetch_data(self) -> str:
-        r = req.get(self.url)
-        self.status = r.status_code == 200
-        if self.status:
-            return r.text
-        else:
-            logging.warning(
-                f"Unable to fetch contents from ICal link '{self.url}' {self.status=}!"
+        try:
+            r = req.get(self.url)
+            self.status = r.status_code == 200
+            if self.status:
+                return r.text
+            else:
+                logging.warning(
+                    f"Unable to fetch contents from ICal link '{self.url}' {self.status=}!"
+                )
+                return ""
+        except req.exceptions.RequestException as err:
+            logging.error(
+                f"Something went wrong fetching remote content from '{self.url}'!\nError: {err}"
             )
             return ""
 
